@@ -190,13 +190,19 @@ function init () {
     }
 
 
-    // 球形处理
+    // 套公式计算球形坐标
     let vector = new THREE.Vector3(); // 向量对象
 
+    // x = rsinθcosφ.
+    // y = rsinθsinφ.
+    // z = rcosθ.
     for ( let i = 0, l = objects.length; i < l; i ++ ) {
 
-        let phi = Math.acos( - 1 + ( 2 * i ) / l );
+        let phi = Math.acos( - 1 + ( 2 * i ) / l ); // 区间范围控制在[-1, 1] 三角函数的取值范围 点的角度由索引和数量求得
+
         let theta = Math.sqrt( l * Math.PI ) * phi;
+
+        console.log(phi*180/Math.PI, theta*180/Math.PI);
 
         let object = new THREE.Object3D();
 
