@@ -19,9 +19,9 @@
     7.使用自定义着色器以及粒子系统等 
                             -《Three.js开发指南》 - Jos Dirksen
 
-> 兼容性
+> 框架必看-兼容性
 
-- 几乎所有浏览器的桌面端，移动端都支持WebGL, 唯一例外是：移动迷你版opera（mini）浏览器， 因为它支持服务端渲染，而opera服务器禁止运行js,从8.0版本后默认的工作模式被修改支持js和WebGL
+- WebGL：几乎所有浏览器的桌面端，移动端都支持, 唯一例外是：移动迷你版opera（mini）浏览器， 因为它支持服务端渲染，而opera服务器禁止运行js,从8.0版本后默认的工作模式被修改支持js和WebGL
 - 对于ThreeJs, 现代基本所有浏览器都支持，IE10以及以下可以安装插件 [iewebgl](https://github.com/iewebgl/iewebgl)
   
 
@@ -33,7 +33,9 @@
 
 - 中文案例地址：http://www.webgl3d.cn/threejs/docs/
 
-- 如果需要加载外部文件，比如模型，文件，需要服务器来保证资源正常加载【http-server, Moongoose等】
+- 在线教程： http://www.webgl3d.cn/Three.js/
+
+- 如果需要加载外部文件，比如模型，文件，需要服务器来保证资源正常加载【使用一些工具软件比如http-server, Moongoose等】
   
 - 禁用浏览器安全性检查(在没有web服务时正常运行代码，避免这种方式访问真正的网站，避免遭受恶意代码攻击）
     - windows
@@ -66,7 +68,10 @@
 
 > 第一个案例 创建一个三维场景
 
-- npm方式 添加依赖
+- 两种引入方式
+
+
+1. npm方式 添加依赖
 
     ```
     npm install three --save
@@ -74,7 +79,7 @@
 
 
 
-- 库文件引入方式
+2. 库文件引入方式
  https://github.com/josdirksen/learning-threejs-third/learning-threejs-third/libs/three/three.js
 
 主要流程（具体代码查看src\first-scene\index.js）：
@@ -82,11 +87,12 @@
 ```javascript
  function init (domId) {
 
-     // 1. 创建场景
+     // 1. 创建场景 【容器，保存跟踪需要渲染的物体，光源】
      scenIns = new THREE.Scene();
     
     // 1. 创建相机（常用的是透视和正交）
 	/**
+   * 参数说明[http://www.webgl3d.cn/Three.js/] 9.1小节
 	 * @param [fov=50] Camera frustum vertical field of view. Default value is 50. 视场，视野范围 50度
 	 * @param [aspect=1] Camera frustum aspect ratio. Default value is 1.长宽比 决定横视场和纵向视场的比例
 	 * @param [near=0.1] Camera frustum near plane. Default value is 0.1. 近截面
@@ -95,7 +101,7 @@
     cameraIns = new THREE.PerspectiveCamera(45, WINDOW_INNER_WIDTH / WINDOW_INNER_HEIGHT, 0.1, 1000);
 
 
-    // 创建渲染器
+    // 创建渲染器【基于摄像机角度计算物体在浏览器中的渲染结果】
     rendererIns = new THREE.WebGLRenderer();
     rendererIns.setClearColor(new THREE.Color(0x000000));
     rendererIns.setSize(WINDOW_INNER_WIDTH, WINDOW_INNER_HEIGHT);
@@ -118,20 +124,6 @@
  }
 ```
 
-# 鼠标操作三维场景-OrbitControls.js
-
-- 引入依赖
--     <script type="text/javascript" charset="UTF-8" src="./libs/three/controls/OrbitControls.js"></script>
-```
-
-    // render(); // 函数替换
-
-    // 使用轨道控制器
-    let controls = new THREE.OrbitControls(cameraIns,rendererIns.domElement);//创建控件对象
-    controls.addEventListener('change', render);//监听鼠标、键盘事件
-
-```
-
 # 加载.obj模型文件
 
 模型的创建：Maya, 3dmax、blender软件导出的三维模型文件本质上是json
@@ -147,7 +139,7 @@ Threejs在three.js-master\examples\js\loaders目录下会提供一系列的加�
 <!-- 引入obj模型加载库OBJLoader.js -->
 <script src="../../three.js-master/examples/js/loaders/OBJLoader.js"></script>
 
-```
+```javascript
 /**
  * OBJ文件加载  只加载obj文件中的几何信息，不加载材质文件.mtl
  */
@@ -167,7 +159,7 @@ loader.load('./立方体/box.obj',function (obj) { // load函数接受两个参�
 - 同时加载obj文件和mtl文件
 mtl文件包含模型的材质信息，纹理路径，贴图信息等
 
-```
+```javascript
 <!-- 引入obj模型加载库OBJLoader.js -->
 <script src="../../three.js-master/examples/js/loaders/OBJLoader.js"></script>
 <!-- 引入obj模型材质加载库MTLLoader.js -->
@@ -189,61 +181,10 @@ MTLLoader.load('./立方体/box.mtl', function(materials) {
 ```
 .obj文件不包含场景的相机Camera,光源等信息，不能导出骨骼动画，如果希望导出光照，相机，骨骼动画，变形动画信息，可以选择.fbx、.gltf等格式
 
-# fbx文件加载以及动画解析
 
-stl、obj都是静态模型，不可以包含动画，fbx除了包含几何、材质信息，可以存储骨骼动画等数据
+## 加载一个OBJ文件并进行贴图
 
-- 动画相关的数据是如何存储的
-obj.animations属性的数组包含两个剪辑对象AnimationClip，obj.animations[0]对应剪辑对象AnimationClip包含多组关键帧KeyframeTrack数据，obj.animations[1]对应的剪辑对象AnimationClip没有关键帧数据，也就是说没有关键帧动画
-
-```
-var loader = new THREE.FBXLoader();//创建一个FBX加载器
-loader.load("SambaDancing.fbx", function(obj) {
-  // 查看动画数据  2个剪辑对象AnimationClip
-  console.log(obj.animations)
-
-})
-```
-
-- 解析fbx模型骨骼动画
-```
-var mixer=null;//声明一个混合器变量
-var loader = new THREE.FBXLoader();//创建一个FBX加载器
-
-loader.load("SambaDancing.fbx", function(obj) {
-  scene.add(obj)
-  // obj作为参数创建一个混合器，解析播放obj及其子对象包含的动画数据
-  mixer = new THREE.AnimationMixer(obj);
-  // 查看动画数据
-  console.log(obj.animations)
-  // obj.animations[0]：获得剪辑对象clip
-  var AnimationAction=mixer.clipAction(obj.animations[0]);
-  // AnimationAction.timeScale = 1; //默认1，可以调节播放速度
-  // AnimationAction.loop = THREE.LoopOnce; //不循环播放
-  // AnimationAction.clampWhenFinished=true;//暂停在最后一帧播放的状态
-  AnimationAction.play();//播放动画
-})
-// 创建一个时钟对象Clock
-var clock = new THREE.Clock();
-
-// 渲染函数
-function render() {
-  renderer.render(scene, camera); //执行渲染操作
-  requestAnimationFrame(render); //请求再次执行渲染函数render，渲染下一帧
-
-  if (mixer !== null) {
-    //clock.getDelta()方法获得两帧的时间间隔
-    // 更新混合器相关的时间
-    mixer.update(clock.getDelta());
-  }
-}
-render();
-```
-## 小案例
-
-- 加载一个OBJ文件并进行贴图
-
-```
+```javascript
 var loader = new THREE.OBJLoader();
 loader.load('./model.obj',function (obj) {
   //加载纹理贴图texture1.png
@@ -258,7 +199,188 @@ loader.load('./model.obj',function (obj) {
 ```
 
 
-# 帧动画
+- 相关库文件以及部分常见方法
+
+1. dat.GUI 变量和页面组件进行联动
+
+```javaScript
+
+// 定义变量对象
+let controls = {
+	a: 0.1,
+	b: 0.3
+}
+
+let gui = new dat.GUI();
+gui.add(controls, 'rotateSpeed', 0, 0.5); // 取值范围
+gui.add(controls, 'rotateSpeed', 0, 0.5)
+
+// 操作页面改变a,b的值
+// 通过controls取得变化后的值
+```
+
+2. 场景自适应的处理 监听resize事件
+
+```javascript
+
+let scene;
+let camera;
+let render;
+
+function onResize () {
+	// ...
+	let innerWidth = window.innerWidth;
+	let innerHeight = window.innerHeight;
+
+	camera.aspect = innerWidth / innerHeight; // 重新计算屏幕长宽比
+
+	camera.updateProjectMatrix(); // 更新摄像机矩阵
+
+	render.setSize(innerWidth, innerHeight); // 更新渲染器尺寸
+
+	// ...
+}
+```
+
+3. 轨道控制器 鼠标操作场景
+- <script type="text/javascript" charset="UTF-8" src="./libs/three/controls/OrbitControls.js"></script>
+```javascript
+function render() {
+  renderer.render(scene,camera);//执行渲染操作
+  mesh.rotateY(0.01);//每次绕y轴旋转0.01弧度
+  requestAnimationFrame(render);//请求再次执行渲染函数render
+}
+render();
+var controls = new THREE.OrbitControls(camera);//创建控件对象,换入摄像机
+```
+
+1. 3D对象常用方法
+
+```javascript
+var geometry = new THREE.BoxGeometry(100, 100, 100); //创建一个立方体几何对象Geometry
+
+// 几何体xyz三个方向都放大2倍
+geometry.scale(2, 2, 2);
+
+// 几何体沿着x轴平移50
+geometry.translate(50, 0, 0);
+
+// 几何体绕着x轴旋转45度
+geometry.rotateX(Math.PI / 4);
+
+// 居中：偏移的几何体居中
+geometry.center();
+
+// 向量值拷贝
+var p1 = new THREE.Vector3(1.2,2.6,3.2);
+var p2 = new THREE.Vector3(0.0,0.0,0.0);
+p2.copy(p1)
+// p2向量的xyz变为p1的xyz值
+console.log(p2);
+
+// 网格模型clone
+var box=new THREE.BoxGeometry(10,10,10);//创建一个立方体几何对象
+var material=new THREE.MeshLambertMaterial({color:0x0000ff});//材质对象
+
+var mesh=new THREE.Mesh(box,material);//网格模型对象
+var mesh2 = mesh.clone();//克隆网格模型
+mesh.translateX(20);//网格模型mesh平移
+
+scene.add(mesh,mesh2);//网格模型添加到场景中
+
+// traverse在每一个对象上执行此传入的方法
+scene.traverse(function(obj) {
+  if (obj.type === "Group") {
+    console.log(obj.name);
+  }
+  if (obj.type === "Mesh") {
+    console.log('  ' + obj.name);
+    obj.material.color.set(0xffff00);
+  }
+  if (obj.name === "左眼" | obj.name === "右眼") {
+    obj.material.color.set(0x000000)
+  }
+  // 打印id属性
+  console.log(obj.id);
+  // 打印该对象的父对象
+  console.log(obj.parent);
+  // 打印该对象的子对象
+  console.log(obj.children);
+})
+
+
+// 对象查找
+var idNode = scene.getObjectById ( 4 );
+
+// 遍历查找对象的子对象，返回name对应的对象（name是可以重名的，返回第一个）
+var nameNode = scene.getObjectByName ( "左腿" );
+nameNode.material.color.set(0xff0000);
+```
+
+
+# 粒子系统模拟下雨
+
+```javascript
+/**
+ * 精灵创建下雨效果 【http://www.webgl3d.cn/Three.js/】第10小节
+ */
+// 加载雨滴理贴图
+var textureTree = new THREE.TextureLoader().load("rain.png");
+// 批量创建表示雨滴的精灵模型
+for (let i = 0; i < 400; i++) {
+  var spriteMaterial = new THREE.SpriteMaterial({
+    map:textureTree,//设置精灵纹理贴图
+  });
+  // 创建精灵模型对象
+  var sprite = new THREE.Sprite(spriteMaterial);
+  scene.add(sprite);
+  // 控制精灵大小,
+  sprite.scale.set(8, 10, 1); //// 只需要设置x、y两个分量就可以
+  var k1 = Math.random() - 0.5;
+  var k2 = Math.random() - 0.5;
+  var k3 = Math.random() - 0.5;
+  // 设置精灵模型位置，在整个空间上上随机分布
+  sprite.position.set(200 * k1, 200*k3, 200 * k2)
+}
+
+```
+
+把雨滴模型添加到组里面
+```javascript
+// 创建一个组表示所有的雨滴
+var group = new THREE.Group();
+// 批量创建雨滴精灵模型
+for (let i = 0; i < 400; i++) {
+...
+  group.add(sprite);
+}
+scene.add(group);//雨滴群组插入场景中
+```
+
+
+在渲染函数里面进行绘制
+```javascript
+// 渲染函数
+function render() {
+  // 每次渲染遍历雨滴群组，刷新频率30~60FPS，两帧时间间隔16.67ms~33.33ms
+  // 每次渲染都会更新雨滴的位置，进而产生动画效果
+  group.children.forEach(sprite => {
+    // 雨滴的y坐标每次减1
+    sprite.position.y -= 1;
+    if (sprite.position.y < 0) {
+      // 如果雨滴落到地面，重置y，从新下落
+      sprite.position.y = 200;
+    }
+  });
+  renderer.render(scene, camera); //执行渲染操作
+  requestAnimationFrame(render);//请求再次执行渲染函数render，渲染下一帧
+}
+```
+
+- 介绍一个3d案例 【rotate-sphere】http://www.yanhuangxueyuan.com/threejs/examples/#css3d_periodictable
+
+
+# 【忽略】帧动画
 
 - 编辑关键帧并解析播放
 
@@ -280,7 +402,7 @@ group.add(mesh2); //网格模型添加到组中
 
 - 编辑动画数据
 
-```
+```javascript
 /**
  * 编辑group子对象网格模型mesh1和mesh2的帧动画数据
  */
@@ -307,7 +429,7 @@ var clip = new THREE.AnimationClip("default", duration, [posTrack, colorKF, scal
 
 - 播放动画数据，AnimationAction和混合器AnimationMixer两个API播放已有的帧动画数据
 
-```
+```javascript
 // group作为混合器的参数，可以播放group中所有子对象的帧动画
 var mixer = new THREE.AnimationMixer(group);
 
@@ -324,7 +446,7 @@ AnimationAction.play();//开始播放
 
 - render函数修改
 
-```
+```javascript
 // 创建一个时钟对象Clock
 var clock = new THREE.Clock();
 // 渲染函数
@@ -339,9 +461,9 @@ function render() {
 render();
 ```
 
-## 解析外部模型的动画
+## 【忽略】解析外部模型的动画
 
-```
+```javascript
 "object": {
   // 绑定动画的模型名称Box
   "name": "Box",
@@ -385,8 +507,8 @@ render();
 }]
 ```
 
-加载一个播放模型帧动画
-```
+【忽略】加载一个播放模型帧动画
+```javascript
 // 通过ObjectLoader加载模型文件model.json
 var loader = new THREE.ObjectLoader();
 
@@ -411,7 +533,7 @@ loader.load("model.json", function(obj) {
 ```
 
 
-```
+```javascript
 // 创建一个时钟对象Clock
 var clock = new THREE.Clock();
 // 渲染函数
@@ -430,17 +552,19 @@ render();
 ```
 
 
-- 滚动条手动控制动画播放，vue+element
+- 【忽略】滚动条手动控制动画播放，vue+element
 
-```
+```javascript
 <div id="app">
   <div class="block" style="display:inline;width:500px">
     <el-slider v-model="time" show-input :max=20 :step=0.01></el-slider>
   </div>
 </div>
+
+```
+
+```javascript
 <script>
-...
-...
 
 // 复习一下
 // 关键帧KeyframeTrack、剪辑AnimationClip、操作AnimationAction、混合器AnimationMixer
@@ -468,63 +592,53 @@ render();
 </script>
 ```
 
-# 粒子系统模拟下雨
+# 【忽略】fbx文件加载以及动画解析
 
-```
-/**
- * 精灵创建下雨效果
- */
-// 加载雨滴理贴图
-var textureTree = new THREE.TextureLoader().load("rain.png");
-// 批量创建表示雨滴的精灵模型
-for (let i = 0; i < 400; i++) {
-  var spriteMaterial = new THREE.SpriteMaterial({
-    map:textureTree,//设置精灵纹理贴图
-  });
-  // 创建精灵模型对象
-  var sprite = new THREE.Sprite(spriteMaterial);
-  scene.add(sprite);
-  // 控制精灵大小,
-  sprite.scale.set(8, 10, 1); //// 只需要设置x、y两个分量就可以
-  var k1 = Math.random() - 0.5;
-  var k2 = Math.random() - 0.5;
-  var k3 = Math.random() - 0.5;
-  // 设置精灵模型位置，在整个空间上上随机分布
-  sprite.position.set(200 * k1, 200*k3, 200 * k2)
-}
+stl、obj都是静态模型，不可以包含动画，fbx除了包含几何、材质信息，可以存储骨骼动画等数据
 
+- 动画相关的数据是如何存储的
+obj.animations属性的数组包含两个剪辑对象AnimationClip，obj.animations[0]对应剪辑对象AnimationClip包含多组关键帧KeyframeTrack数据，obj.animations[1]对应的剪辑对象AnimationClip没有关键帧数据，也就是说没有关键帧动画
+
+```javascript
+var loader = new THREE.FBXLoader();//创建一个FBX加载器
+loader.load("SambaDancing.fbx", function(obj) {
+  // 查看动画数据  2个剪辑对象AnimationClip
+  console.log(obj.animations)
+
+})
 ```
 
-把雨滴模型添加到组里面
-```
-// 创建一个组表示所有的雨滴
-var group = new THREE.Group();
-// 批量创建雨滴精灵模型
-for (let i = 0; i < 400; i++) {
-...
-  group.add(sprite);
-}
-scene.add(group);//雨滴群组插入场景中
-```
+- 解析fbx模型骨骼动画
+```javascript
+var mixer=null;//声明一个混合器变量
+var loader = new THREE.FBXLoader();//创建一个FBX加载器
 
+loader.load("SambaDancing.fbx", function(obj) {
+  scene.add(obj)
+  // obj作为参数创建一个混合器，解析播放obj及其子对象包含的动画数据
+  mixer = new THREE.AnimationMixer(obj);
+  // 查看动画数据
+  console.log(obj.animations)
+  // obj.animations[0]：获得剪辑对象clip
+  var AnimationAction=mixer.clipAction(obj.animations[0]);
+  // AnimationAction.timeScale = 1; //默认1，可以调节播放速度
+  // AnimationAction.loop = THREE.LoopOnce; //不循环播放
+  // AnimationAction.clampWhenFinished=true;//暂停在最后一帧播放的状态
+  AnimationAction.play();//播放动画
+})
+// 创建一个时钟对象Clock
+var clock = new THREE.Clock(); // 精确计算此次调用距离上次调用的时间间隔，用于使动画更加平滑稳定
 
-在渲染函数里面进行绘制
-```
 // 渲染函数
 function render() {
-  // 每次渲染遍历雨滴群组，刷新频率30~60FPS，两帧时间间隔16.67ms~33.33ms
-  // 每次渲染都会更新雨滴的位置，进而产生动画效果
-  group.children.forEach(sprite => {
-    // 雨滴的y坐标每次减1
-    sprite.position.y -= 1;
-    if (sprite.position.y < 0) {
-      // 如果雨滴落到地面，重置y，从新下落
-      sprite.position.y = 200;
-    }
-  });
   renderer.render(scene, camera); //执行渲染操作
-  requestAnimationFrame(render);//请求再次执行渲染函数render，渲染下一帧
-}
-```
+  requestAnimationFrame(render); //请求再次执行渲染函数render，渲染下一帧
 
-介绍一个3d案例
+  if (mixer !== null) {
+    //clock.getDelta()方法获得两帧的时间间隔
+    // 更新混合器相关的时间
+    mixer.update(clock.getDelta());
+  }
+}
+render();
+```
